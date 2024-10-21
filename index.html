@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <title>API CHECKER</title>
@@ -219,9 +219,9 @@
         .copyright a:hover {
             text-decoration: underline;
         }
-        .verify-btn-group {
-            display: line-block;
-        }
+        /*.verify-btn-group {*/
+        /*    display: line-block;*/
+        /*}*/
         .verify-btn {
             padding: 3px 8px;
             margin-left: 8px;
@@ -229,6 +229,7 @@
             border: none;
             border-radius: 3px;
             color: white;
+            background-color: #28a745;
             display: inline-block;
             font-size: 14px;
             line-height: 1.5;
@@ -240,20 +241,7 @@
         .verify-btn.blue:hover {
           background-color: #2980b9;
         }
-        .verify-btn.green {
-          background-color: #28a745;
-          color: white;
-        }
-        .verify-btn.green:hover {
-          background-color: #218838;
-        }
-        .verify-btn.yellow {
-          background-color: #ffc107;
-          color: white;
-        }
-        .verify-btn.yellow:hover {
-          background-color: #e0a800;
-        }
+
         .verify-btn.cyan {
             background-color: #1abc9c;
             color: white;
@@ -261,23 +249,17 @@
         .verify-btn.cyan:hover {
             background-color: #16a085;
         }
-        .verify-btn.pink {
-            background-color: #e91e63;
-            color: white;
-        }
-        .verify-btn.pink:hover {
-            background-color: #c2185b;
-        }
+
         .verify-btn::after {
             content: attr(data-tooltip); /* 获取 data-tooltip 属性的值作为提示文本 */
             visibility: hidden;
             opacity: 0;
             position: absolute;
             background-color: #333;
-            color: #fff; 
+            color: #fff;
             padding: 5px 10px;
             border-radius: 3px;
-            transition: opacity 0.3s; 
+            transition: opacity 0.3s;
         }
         .verify-btn:hover::after {
             visibility: visible;
@@ -468,24 +450,16 @@
                 <br>
                 <div>仓库地址:  <a href="https://github.com/QAbot-zh/query-key" target="_blank" style="color: #1e88e5">QAbot-zh/query-key</a></div><div>点点star 可以自行部署</div>
                 <br>
+                <p><strong>启用新域名: </strong> <a href="https://check.crond.dev" target="_blank" style="color: #1e88e5">https://check.crond.dev</a></p>
+                <br>
                 <p><strong>如何使用 :</strong></p>
                 <ul>
-                    <div>📝 在表单中输入你的API URL和APIKey</div>
-                    <div>🔍 选择名称或输入您想要测试的模型</div>
-                    <div>🖱️ 测试全在本地进行</div>
-                    <div>🎉 等待结果并查看详细报告</div>
                     <div>🕵️ 使用“官转验证”功能确认API的真实性</div>
                     <div>🕵️‍♀️ 使用“温度验证”功能确认API的真实性</div>
                     <div>📊 使用“函数验证”功能检测API是否支持FC</div>
                     <div>🔒 <strong> beta 功能：支持本地缓存API信息，数据仅本地保留，默认关闭</strong> </div>
                 </ul>
                 <br>
-                <p><strong>版本历史:</strong></p>
-                 <div><a href="https://linux.do/t/topic/199694" target="_blank" style="color: #1e88e5">v1.4版本介绍</a></div>
-                 <div><a href="https://linux.do/t/topic/191420" target="_blank" style="color: #1e88e5">v1.3版本介绍</a></div>
-                 <div><a href="https://linux.do/t/topic/190955" target="_blank" style="color: #1e88e5">v1.2版本介绍</a></div>
-                 <div><a href="https://linux.do/t/topic/196537" target="_blank" style="color: #1e88e5">beta功能</a></div>
-                 <br>
                 <p><strong>Tips:</strong></p>
                 <div>🌱GPT系列，才有官转验证，系统判断仅供参考，原理请看 <a href="https://linux.do/t/topic/191420" target="_blank" style="color: #1e88e5">v1.3版本介绍</a></div>
                 <div>🌡️ 温度验证：低温度参数下，大模型回复的稳定性。测试结果仅供参考，原理请看 <a href="https://linux.do/t/topic/195972" target="_blank" style="color: #1e88e5">温度验证</a></div>
@@ -756,7 +730,7 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        const returnedModel = data.model;
+                        const returnedModel = data.model || "no returned model by rick"; // 确保 returnedModel 有效
                         if (returnedModel === model) {
                             results.valid.push({model, responseTime});
                             if (/^(gpt-|chatgpt-|o1-)/.test(model)) {
@@ -783,7 +757,7 @@
                                 response_text = '无法解析响应内容';
                             }
                         }
-                        results.invalid.push({model, response_text})
+                        results.invalid.push({model, response_text});
                         console.log(`测试 API 节点：${apiUrl} 测试模型：${model} 模型不可用，响应：${response.status} ${response.statusText} ${response_text}`);
                     }
                 } catch (error) {
@@ -800,7 +774,11 @@
             }
 
             async function runBatch(models) {
-                const promises = models.map(model => testModel(model));
+                const promises = models.map(model =>
+                    testModel(model).catch(error => {
+                        console.error(`测试模型 ${model} 时发生错误：${error.message}`);
+                    })
+                );
                 await Promise.all(promises);
             }
 
@@ -845,12 +823,12 @@
     function displayResults(results) {
         const resultsDiv = document.getElementById('results');
         let content = '<h2>测试结果</h2>' +
-            '<h3>（结果仅供参考，防君子不防小人）</h3>' + 
+            '<h3>（结果仅供参考，防君子不防小人）</h3>' +
             '<div class="copy-buttons">' +
             '<div className="submit-container">' +
             '<button class="check-quota copy-btn" onclick="copyConsistentModels()">复制一致模型</button>' +
             '<button class="check-quota copy-btn" onclick="copyConsistentAndInconsistentModels()">复制所有可用模型</button>' +
-            '<button class="check-quota copy-btn"onclick="copyConsistentAndInconsistentReturedModels()">复制可用原始模型</button>' +
+            '<button class="check-quota copy-btn" onclick="copyConsistentAndInconsistentReturedModels()">复制可用原始模型</button>' +
             '</div>' +
             '</div>' +
             '<table>' +
@@ -878,7 +856,7 @@
                     <button class="verify-btn blue" data-tooltip="低温度参数下预测序列下一个值,将发起4次请求" onclick="verifyTemperature('${r.model}')">
                         温度验证
                     </button>
-                    ${/^(gpt-|chatgpt-|o1-)/.test(r.model) ? ` 
+                    ${/^(gpt-|chatgpt-|o1-)/.test(r.model) ? `
                         <button class="verify-btn ${officialButtonClass}" data-tooltip="相同种子参数下校验回复相似性和系统指纹,将发起4次请求" onclick="verifyOfficial('${r.model}')">
                             官转验证
                         </button>
@@ -898,7 +876,7 @@
                     <button class="verify-btn blue" data-tooltip="低温度参数下预测序列下一个值,将发起4次请求" onclick="verifyTemperature('${r.model}')">
                         温度验证
                     </button>
-                    ${/^(gpt-|chatgpt-|o1-)/.test(r.model) ? ` 
+                    ${/^(gpt-|chatgpt-|o1-)/.test(r.model) ? `
                         <button class="verify-btn ${officialButtonClass}" data-tooltip="相同种子参数下校验回复相似性和系统指纹,将发起4次请求" onclick="verifyOfficial('${r.model}')">
                             官转验证
                         </button>
@@ -960,7 +938,7 @@
 
         for (const item of arr) {
             frequency[item] = (frequency[item] || 0) + 1;
-            
+
             if (frequency[item] > maxCount) {
                 maxCount = frequency[item];
                 mostFrequentElement = item;
@@ -1004,11 +982,11 @@
             let hitReferenceCount = 0;
             let color;
             for (let i = 0; i < 4; i++) {
-              if (responses[i] == referenceValue) {
+              if (responses[i] === referenceValue) {
                 hitReferenceCount++;
                 color = "green";
               }
-              else if (responses[i] == "该次调用响应失败"){
+              else if (responses[i] === "该次调用响应失败"){
                 color = "red"
               }
               else{
@@ -1029,7 +1007,7 @@
 
             frequencyCheckResult = findMostFrequent(responses);
             const diffentCount = frequencyCheckResult.count;
-            
+
             if (diffentCount === responses.length) {
                 message += "所有响应相同，可能是官方API";
             } else {
